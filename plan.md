@@ -70,7 +70,7 @@ q = M*p
 K = H + r*(q-H) 
 Get intersection points
 find right point c
-determine length L_2 = ||H + c*(q-H) ||
+determine length L_2 = ||c*(q-H) ||
 find r such that ||r*(q-H) || is t*L2
 ### working out
 r||(q-H)|| = (t*L_2)^2

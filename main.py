@@ -69,7 +69,7 @@ def extract_data_from_point(point:list):
         c = candidate
         if candidate > 0:
             break
-    t = np.linalg.norm(H + c*A) / L
+    t =  L / np.linalg.norm(c*A) 
 
     # find percentage t
     return t, h
@@ -91,8 +91,8 @@ def transform_point(point, t, h, rot_mat):
         if candidate > 0:
             break
     # 3. scale q up by factor of t
-    L_2 = np.linalg.norm(H + candidate*(q-H))
-    r = (t*L_2)**2 / np.linalg.norm(q-H)
+    L_2 = np.linalg.norm(candidate*(q-H))
+    r = (t*L_2) / np.linalg.norm(q-H)
     # 4. return or set point = q
     return_values = [None, None, None]
     for index, value in enumerate(np.nditer(H + r*(q-H))):
@@ -115,14 +115,14 @@ def transform_pixel(pixel, angle=None):
     t,h = extract_data_from_point(point)
     r,g,b = scale_up(transform_point(point, t, h, rot_mat))
     r,g,b = limiter(r), limiter(g), limiter(b)
-    return  math.floor(r), math.floor(g), math.floor(b), transparency
+    return  round(r), round(g), round(b), transparency
 
 def limiter(value):
     return minner(maxer(value))
 
 from functools import partial
 
-parts = 200
+parts = 20
 part_iterator = range(parts)
 angles = [part*math.pi*2/parts for part in part_iterator]
 
