@@ -69,7 +69,7 @@ def extract_data_from_point(point:list):
         c = candidate
         if candidate > 0:
             break
-    t = c / L
+    t = np.linalg.norm(H + c*A) / L
 
     # find percentage t
     return t, h
@@ -100,14 +100,22 @@ def transform_point(point, t, h, rot_mat):
     return return_values
 # transformator = dimmer
 
+def scale_up(values):
+    return [value*255 for value in values]
+def scale_down(values):
+    return [value/255 for value in values]
+    
+
 def transform_pixel(pixel, angle=None):
     transparency = pixel[3]
-    point = np.array(pixel[0:3])
+    
+    point = np.array(scale_down(pixel[0:3]))
+
     rot_mat = get_matrix(angle=angle)
     t,h = extract_data_from_point(point)
-    r,g,b = transform_point(point, t, h, rot_mat)
+    r,g,b = scale_up(transform_point(point, t, h, rot_mat))
     r,g,b = limiter(r), limiter(g), limiter(b)
-    return  math.floor(r), math.floor(g), math.floor(b),transparency
+    return  math.floor(r), math.floor(g), math.floor(b), transparency
 
 def limiter(value):
     return minner(maxer(value))
@@ -120,6 +128,7 @@ angles = [part*math.pi*2/parts for part in part_iterator]
 
 pixels = testim.load()
 for angle in angles:
+    # angle =angle + math.pi/4
     transformator = partial(transform_pixel, angle=angle)
     for i in range(testim.size[0]):
         for j in range(testim.size[1]):
