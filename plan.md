@@ -19,9 +19,9 @@ define the rotation matrix M such that for any point P, MP is f degrees rotated 
 taken from [wikipedia](https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle)
 
 requires a unit vector (u, u, u)= U = (u_x,u_y,u_z) such that
-u_x^2 + u_y^2 + u_z^2 = 1 = 3 u^2
-u^2 = 1/3
-u = 1/sqrt(3)
+u_x^2 + u_y^2 + u_z^2 = 1 = 3 u^2  
+u^2 = 1/3  
+u = 1/sqrt(3)  
 
 
 ## point specific

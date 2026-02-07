@@ -5,25 +5,24 @@ import numpy as np
 HERE = os.path.abspath(os.path.dirname(__file__))
 SOURCE_FOLDER = os.path.join(HERE, "SourceImages")
 FINAL_FOLDER = os.path.join(HERE, "FinalImages")
-
-TEST_FILE = os.path.join(SOURCE_FOLDER, "myst123.bmp")
-TEST_OUTPUT = os.path.join(FINAL_FOLDER, "ColourOutput.bmp")
-
+INPUT_FILE_NAME = "ColourPost2"
+INPUT_FILE_EXT =  "png"
+TEST_FILE = os.path.join(SOURCE_FOLDER, ".".join([INPUT_FILE_NAME, INPUT_FILE_EXT]))
 num_tol = 0.00001
 
 testim = Image.open(TEST_FILE)
 
-def maxer(value:float):
-    return max(0,value)
+def maxer(value: float):
+    return max(0, value)
 
-def minner(value:float):
-    return min(255,value)
+def minner(value: float):
+    return min(255, value)
 
 def dimmer(pixel, shift = 70):
-    r,g,b,a = pixel
-    return (maxer(r-shift), maxer( g-shift), maxer(b-shift), a)
+    r, g, b, a = pixel
+    return (maxer(r - shift), maxer(g - shift), maxer(b - shift), a)
 
-def get_matrix(angle:float=None):
+def get_matrix(angle: float = None):
     if angle is None:
          angle = 0 # math.pi*2
     u = 1/math.sqrt(3)
@@ -48,7 +47,7 @@ def get_matrix(angle:float=None):
     rot_matrix = np.matrix([[other, diff, summ], [summ, other, diff], [diff, summ, other]])
     return rot_matrix
 
-def extract_data_from_point(point:list):
+def extract_data_from_point(point: list):
     # find height h
     h = sum(point)/3
     H = [h, h, h]
@@ -117,25 +116,47 @@ def transform_pixel(pixel, angle=None):
     r,g,b = limiter(r), limiter(g), limiter(b)
     return  round(r), round(g), round(b), transparency
 
+def transform_pixel_non_transparent(pixel, angle=None):
+   
+    point = np.array(scale_down(pixel))
+
+    rot_mat = get_matrix(angle=angle)
+    t,h = extract_data_from_point(point)
+    r,g,b = scale_up(transform_point(point, t, h, rot_mat))
+    r,g,b = limiter(r), limiter(g), limiter(b)
+    return  round(r), round(g), round(b)
+
 def limiter(value):
     return minner(maxer(value))
 
 from functools import partial
 
-parts = 20
+parts = 50
+OUTPUT_FOLDER = os.path.join(FINAL_FOLDER, INPUT_FILE_NAME + "_" + str(parts))
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 part_iterator = range(parts)
 angles = [part*math.pi*2/parts for part in part_iterator]
 
 pixels = testim.load()
+index = 1
 for angle in angles:
-    # angle =angle + math.pi/4
-    transformator = partial(transform_pixel, angle=angle)
+    # angle = angle + math.pi/4
+    pixel_info = len(pixels[0, 0])
+    if (pixel_info==4):
+        transformator = partial(transform_pixel, angle=angles[1])
+    elif (pixel_info==3):
+        transformator = partial(transform_pixel_non_transparent, angle=angles[1])
+    else:
+        raise TypeError(f"Bad Pixel data: data per pixel is :{pixel_info}, should be 3 or 4.")
     for i in range(testim.size[0]):
         for j in range(testim.size[1]):
-            pixels[i,j] =transformator(pixels[i,j])
-    filename = "output" + str(angle) + ".bmp"
-    pathname = os.path.join(FINAL_FOLDER, filename)
+            pixels[i,j] = transformator(pixels[i,j])
+    indstr = str(index)
+    zeroes = "0"*(len(str(parts)) - len(indstr))
+    filename = INPUT_FILE_NAME +"_" + zeroes +  indstr + "of" + str(parts) + ".png"
+    pathname = os.path.join(OUTPUT_FOLDER, filename)
     testim.save(pathname)
+    index += 1
 
 
 print(testim)
